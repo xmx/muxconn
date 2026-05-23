@@ -6,6 +6,7 @@ import (
 	"io"
 	"math"
 	"os"
+	"sync"
 	"time"
 
 	"golang.org/x/time/rate"
@@ -36,16 +37,20 @@ func newUnlimit() *rateLimiter {
 type rateLimiter struct {
 	rlimit *rate.Limiter
 	wlimit *rate.Limiter
+	mutex  sync.Mutex
 }
 
 func (rl *rateLimiter) Limit() rate.Limit { return rl.rlimit.Limit() }
 
-func (rl *rateLimiter) SetLimit(bps rate.Limit) {
+func (rl *rateLimiter) SetLimit(bps rate.Limit) bool {
 	if bps < minimumBurst {
-		bps = minimumBurst
+		return false
 	}
 
 	now := time.Now()
+	rl.mutex.Lock()
+	defer rl.mutex.Unlock()
+
 	rl.rlimit.SetLimitAt(now, bps)
 	rl.wlimit.SetLimitAt(now, bps)
 
@@ -55,6 +60,8 @@ func (rl *rateLimiter) SetLimit(bps rate.Limit) {
 		rl.rlimit.SetBurstAt(now, burst)
 		rl.wlimit.SetBurstAt(now, burst)
 	}
+
+	return true
 }
 
 func (rl *rateLimiter) warpReadWriter(parent context.Context, rw io.ReadWriter) io.ReadWriter {

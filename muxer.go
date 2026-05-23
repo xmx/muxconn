@@ -3,6 +3,7 @@ package muxconn
 import (
 	"context"
 	"net"
+	"time"
 
 	"golang.org/x/time/rate"
 )
@@ -25,7 +26,7 @@ type Muxer interface {
 
 	// SetLimit 设置最大传输速率，bytes/s。
 	// bps = rate.Inf 代表不限制速率。
-	SetLimit(bps rate.Limit)
+	SetLimit(bps rate.Limit) bool
 
 	Streams() []Streamer
 
@@ -37,6 +38,9 @@ type Muxer interface {
 
 	// Library 底层连接所使用的库，方便排查调试。
 	Library() (name, module string)
+
+	// ConnectedAt Muxer 的创建时间，大致可以标识通道建立时间。
+	ConnectedAt() time.Time
 }
 
 type Streamer interface {
