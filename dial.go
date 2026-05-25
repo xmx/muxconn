@@ -12,7 +12,7 @@ import (
 	"github.com/gorilla/websocket"
 )
 
-type DialOptions struct {
+type DialWebsocketOptions struct {
 	// Dialer websocket 拨号器。
 	Dialer *websocket.Dialer
 
@@ -23,15 +23,15 @@ type DialOptions struct {
 	Logger *slog.Logger
 }
 
-func DialContext(parent context.Context, addrs []string, opts *DialOptions) (Muxer, error) {
+func DialWebsocket(parent context.Context, addrs []string, opts *DialWebsocketOptions) (Muxer, error) {
 	if opts == nil {
-		opts = new(DialOptions)
+		opts = new(DialWebsocketOptions)
 	}
 
 	return opts.dialContext(parent, addrs)
 }
 
-func (d DialOptions) dialContext(parent context.Context, addrs []string) (Muxer, error) {
+func (d DialWebsocketOptions) dialContext(parent context.Context, addrs []string) (Muxer, error) {
 	if len(addrs) == 0 {
 		return nil, errors.New("连接地址不能为空")
 	}
@@ -70,7 +70,7 @@ func (d DialOptions) dialContext(parent context.Context, addrs []string) (Muxer,
 	return nil, err
 }
 
-func (d DialOptions) protocolDials(parent context.Context, dest *url.URL) (Muxer, []error) {
+func (d DialWebsocketOptions) protocolDials(parent context.Context, dest *url.URL) (Muxer, []error) {
 	query := dest.Query()
 	proto := strings.ToLower(query.Get("protocol"))
 	var protocols []string
@@ -99,7 +99,7 @@ func (d DialOptions) protocolDials(parent context.Context, dest *url.URL) (Muxer
 	return nil, errs
 }
 
-func (d DialOptions) dialOne(parent context.Context, dest *url.URL, proto string) (Muxer, error) {
+func (d DialWebsocketOptions) dialOne(parent context.Context, dest *url.URL, proto string) (Muxer, error) {
 	strURL := dest.String()
 	dialer := d.websocketDialer()
 
@@ -129,7 +129,7 @@ func (d DialOptions) dialOne(parent context.Context, dest *url.URL, proto string
 	return mux, nil
 }
 
-func (d DialOptions) log() *slog.Logger {
+func (d DialWebsocketOptions) log() *slog.Logger {
 	if d.Logger != nil {
 		return d.Logger
 	}
@@ -137,7 +137,7 @@ func (d DialOptions) log() *slog.Logger {
 	return slog.Default()
 }
 
-func (d DialOptions) websocketDialer() *websocket.Dialer {
+func (d DialWebsocketOptions) websocketDialer() *websocket.Dialer {
 	if d.Dialer != nil {
 		return d.Dialer
 	}
@@ -149,7 +149,7 @@ func (d DialOptions) websocketDialer() *websocket.Dialer {
 	}
 }
 
-func (d DialOptions) perTimeout() time.Duration {
+func (d DialWebsocketOptions) perTimeout() time.Duration {
 	if d.PerTimeout > 0 {
 		return d.PerTimeout
 	}
