@@ -83,7 +83,7 @@ func (s *muxStreamStats) putConn(c Streamer) {
 
 	s.count++
 	stats.id = s.count
-	c.initStats(stats)
+	c.setTrunkStats(stats)
 	s.streams[c] = struct{}{}
 }
 
